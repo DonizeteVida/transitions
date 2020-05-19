@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:transitions/src/abstraction/transition.dart';
+export './slide_impl.dart';
 
 abstract class SimpleSlideTransition extends Transition {
-  const SimpleSlideTransition(Widget child) : super(child);
+  SimpleSlideTransition(Widget child) : super(child);
 
   Offset get enterBeginOffset;
   Offset get enterEndOffset;
-  Curve get curve => Curves.linear;
+  Curve get curve => Curves.easeInOut;
 
   @override
   Widget animate(
@@ -32,7 +33,7 @@ abstract class SimpleSlideTransition extends Transition {
 }
 
 abstract class ComplexSlideTransition extends SimpleSlideTransition {
-  const ComplexSlideTransition(Widget child) : super(child);
+  ComplexSlideTransition(Widget child) : super(child);
 
   Offset get popBeginOffset;
   Offset get popEndOffset;
