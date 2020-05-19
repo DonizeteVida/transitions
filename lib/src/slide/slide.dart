@@ -68,3 +68,39 @@ abstract class ComplexSlideTransition extends SimpleSlideTransition {
     );
   }
 }
+
+abstract class RuntimeComplexSlideTransition extends ComplexSlideTransition {
+  RuntimeComplexSlideTransition(
+    Widget child, {
+    this.enterBeginOffset = Offset.zero,
+    this.enterEndOffset = Offset.zero,
+    this.popBeginOffset = Offset.zero,
+    this.popEndOffset = Offset.zero,
+  }) : super(child);
+
+  @override
+  final Offset enterBeginOffset;
+
+  final Offset enterEndOffset;
+
+  @override
+  final Offset popBeginOffset;
+
+  @override
+  final Offset popEndOffset;
+}
+
+class MutableComplexSlideTransition extends InheritedWidget {
+  final ComplexSlideTransition complexSlideTransition;
+  const MutableComplexSlideTransition(
+    this.complexSlideTransition,
+  );
+
+  static MutableComplexSlideTransition of(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<MutableComplexSlideTransition>();
+  }
+
+  @override
+  bool updateShouldNotify(InheritedWidget oldWidget) => true;
+}
