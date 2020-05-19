@@ -32,6 +32,36 @@ abstract class SimpleSlideTransition extends Transition {
   }
 }
 
+abstract class SimpleExitSlideTransition extends Transition {
+  SimpleExitSlideTransition(Widget child) : super(child);
+
+  Offset get exitBeginOffset;
+  Offset get exitEndOffset;
+  Curve get curve => Curves.easeInOut;
+
+  @override
+  Widget animate(
+    BuildContext context,
+    Animation<double> enterAnimation,
+    Animation<double> popAnimation,
+    Widget child,
+  ) {
+    final slideTransition = Tween<Offset>(
+      begin: exitBeginOffset,
+      end: exitEndOffset,
+    ).animate(
+      CurvedAnimation(
+        curve: curve,
+        parent: popAnimation,
+      ),
+    );
+    return SlideTransition(
+      position: slideTransition,
+      child: child,
+    );
+  }
+}
+
 abstract class ComplexSlideTransition extends SimpleSlideTransition {
   ComplexSlideTransition(Widget child) : super(child);
 
@@ -69,38 +99,83 @@ abstract class ComplexSlideTransition extends SimpleSlideTransition {
   }
 }
 
-abstract class RuntimeComplexSlideTransition extends ComplexSlideTransition {
+class RuntimeComplexSlideTransition extends SimpleExitSlideTransition {
   RuntimeComplexSlideTransition(
     Widget child, {
-    this.enterBeginOffset = Offset.zero,
-    this.enterEndOffset = Offset.zero,
-    this.popBeginOffset = Offset.zero,
-    this.popEndOffset = Offset.zero,
+    this.exitBeginOffset,
+    this.exitEndOffset,
+    this.curve = Curves.easeInOut,
   }) : super(child);
 
   @override
-  final Offset enterBeginOffset;
-
-  final Offset enterEndOffset;
+  final Offset exitBeginOffset;
 
   @override
-  final Offset popBeginOffset;
+  final Offset exitEndOffset;
 
+  final Curve curve;
   @override
-  final Offset popEndOffset;
+  Widget animate(
+    BuildContext context,
+    Animation<double> enterAnimation,
+    Animation<double> popAnimation,
+    Widget child,
+  ) {
+    final oldTransition = MutableComplexSlideTransition.of(context);
+    print(oldTransition);
+    final enterBeginOffset = -(oldTransition?.exitEndOffset ?? Offset.zero);
+    final enterEndOffset = -(oldTransition?.exitBeginOffset ?? Offset.zero);
+
+    final enterSlideAnimation = Tween<Offset>(
+      begin: enterBeginOffset,
+      end: enterEndOffset,
+    ).animate(
+      CurvedAnimation(
+        curve: curve,
+        parent: enterAnimation,
+      ),
+    );
+
+    final exitSlideAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        curve: curve,
+        parent: popAnimation,
+      ),
+    );
+
+    final animatedWidget = SlideTransition(
+      position: enterSlideAnimation,
+      child: SlideTransition(
+        position: exitSlideAnimation,
+        child: child,
+      ),
+    );
+
+    return MutableComplexSlideTransition(
+      this,
+      animatedWidget,
+    );
+  }
 }
 
 class MutableComplexSlideTransition extends InheritedWidget {
-  final ComplexSlideTransition complexSlideTransition;
-  const MutableComplexSlideTransition(
-    this.complexSlideTransition,
-  );
+  final RuntimeComplexSlideTransition runtimeComplexSlideTransition;
 
-  static MutableComplexSlideTransition of(BuildContext context) {
-    return context
+  MutableComplexSlideTransition(
+    this.runtimeComplexSlideTransition,
+    Widget child,
+  ) : super(child: child);
+
+  static RuntimeComplexSlideTransition of(BuildContext context) {
+    final scope = context
         .dependOnInheritedWidgetOfExactType<MutableComplexSlideTransition>();
+
+    return scope?.runtimeComplexSlideTransition;
   }
 
   @override
-  bool updateShouldNotify(InheritedWidget oldWidget) => true;
+  bool updateShouldNotify(InheritedWidget oldWidget) => false;
 }
