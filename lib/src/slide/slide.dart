@@ -114,6 +114,7 @@ class RuntimeComplexSlideTransition extends SimpleExitSlideTransition {
   final Offset exitEndOffset;
 
   final Curve curve;
+
   @override
   Widget animate(
     BuildContext context,
@@ -122,7 +123,6 @@ class RuntimeComplexSlideTransition extends SimpleExitSlideTransition {
     Widget child,
   ) {
     final oldTransition = MutableComplexSlideTransition.of(context);
-    print(oldTransition);
     final enterBeginOffset = -(oldTransition?.exitEndOffset ?? Offset.zero);
     final enterEndOffset = -(oldTransition?.exitBeginOffset ?? Offset.zero);
 
